@@ -13,7 +13,7 @@ var Colors = {
 ////////////////////////////////////////////////////////////////////////
 
 // GAME VARIABLES
-var game;
+var game = {};
 
 function resetGame(){
   game = {
@@ -54,7 +54,7 @@ function createScene() {
     1,
     100
     );
-  
+
   //scene.fog = new THREE.Fog(0xf7d9aa, 100,950);
    camera.position.set(-20, 20, -20);
    camera.lookAt(new THREE.Vector3(0, 10, 0));
@@ -63,10 +63,10 @@ function createScene() {
 
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
-  renderer.setClearColor(Colors.blue); 
+  renderer.setClearColor(Colors.blue);
 
   renderer.shadowMap.enabled = true;
-  
+
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
 
@@ -125,7 +125,7 @@ Sky = function(){
   this.mesh = new THREE.Object3D();
   this.nClouds = 10;
   this.clouds = [];
-  
+
   for(var i=0; i<this.nClouds; i++){
     var c = new Cloud();
     this.clouds.push(c);
@@ -171,12 +171,12 @@ Cloud = function(){
 }
 
 Path = function(){
-  
+
 
 }
 
 Path.prototype.dissapear = function (){
-  
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ function createCube() {
         })
 	);
 	console.log("cube");
-	scene.add(cube); 
+	scene.add(cube);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,14 @@ function updateHero(){
 
 var fieldDistance, energyBar, replayMessage, fieldLevel, levelCircle;
 
-
+function _test() {
+	var block = game.fn.initBlock();
+	block = block.createBlock({});
+	block = block.createBlock({});
+	block = block.createBlock({direction: 'left'});
+	block = block.createBlock({direction: 'right'});
+	block = block.createBlock({});
+}
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -242,10 +249,11 @@ function init(event){
   createScene();
   createLights();
   createSky();
-  createCube();
+  // createCube();
+  _init_fn(game, scene);
+  _test();
 
   loop();
 }
 
 window.addEventListener('load', init, false);
-
