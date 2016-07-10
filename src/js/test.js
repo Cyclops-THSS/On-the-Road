@@ -13,11 +13,17 @@ var Colors = {
 ////////////////////////////////////////////////////////////////////////
 
 // GAME VARIABLES
-var game = {};
+var game = {
+};
 
 function resetGame(){
   game = {
-  		//TODO
+    distance_for_hero_speed: 0.1,
+    hero_height: 1,
+    current_direction: {x: 1, z: 0},
+    current_pos: {x: 0, z: 0},
+    paused: false,
+    interval: 30
          };
 
 }
@@ -82,7 +88,21 @@ function createScene() {
 
 ////////////////////////////////////////////////////////////////////////
 
-// MOUSE AND SCREEN EVENTS
+// MOUSE, KEY AND SCREEN EVENTS
+function handleKeyPress(event) {
+  if (event.keyCode == 37) {updateToLeft(); console.log("left");}
+  if (event.keyCode == 39) {updateToRight(); console.log("right");}
+  if (event.keyCode == 32) {
+    if (!game.paused) {
+      clearInterval(intervalId);
+      game.paused = true;
+    }
+    else  {
+      intervalId = setInterval(loop, game.interval);
+      game.paused = false;
+    }
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -154,7 +174,7 @@ Cloud = function(){
   for (var i=0; i<nBlocs; i++ ){
     var m = new THREE.Mesh(geom.clone(), mat);
     m.position.x = i*5 + Math.random()*2;
-    m.position.y = Math.random()*8;
+    m.position.y = Math.random()*6;
     m.position.z = 18 - i*5 + Math.random()*2;
 
     m.rotation.x = Math.random()*Math.PI*2;
@@ -184,6 +204,15 @@ Path.prototype.dissapear = function (){
 // CREATE 3D Models
 
 function createHero(){
+  hero = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
+      new THREE.MeshPhongMaterial({
+          color: Colors.red
+      })
+  );
+  hero.position.x = game.current_pos.x;
+  hero.position.y = game.hero_height;
+  hero.position.z = game.current_pos.z;
+  scene.add(hero);
 }
 
 function createPath(){
@@ -198,37 +227,51 @@ function createSky(){
 function createCoins(){
 }
 
-
-function createCube() {
-	cube = new THREE.Mesh(new THREE.CubeGeometry(3, 3, 3),
-        new THREE.MeshPhongMaterial({
-            color: Colors.red
-        })
-	);
-	console.log("cube");
-	scene.add(cube);
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 // ANIMATION
 
 function loop(){
+  updatePosition();
 
 	renderer.render(scene, camera);
-	//requestAnimationFrame(loop);
 }
 
-function updateDistance(){
+function updateToLeft(){
+    if (game.current_direction.x != 0) {
+      game.current_direction.z = game.current_direction.z - game.current_direction.x;
+      game.current_direction.x = 0;
+    }else {
+      game.current_direction.x = game.current_direction.z - game.current_direction.x;
+      game.current_direction.z = 0;
+    }
 }
 
+function updateToRight() {
+    if (game.current_direction.x != 0) {
+    game.current_direction.z = game.current_direction.x - game.current_direction.z;
+    game.current_direction.x = 0;
+   } else {
+    game.current_direction.x = game.current_direction.x - game.current_direction.z;
+    game.current_direction.z = 0;
+   } 
+}
+
+function updatePosition(){
+  game.current_pos.x += game.distance_for_hero_speed * game.current_direction.x;
+  game.current_pos.z += game.distance_for_hero_speed * game.current_direction.z;
+  hero.position.x = game.current_pos.x;
+  hero.position.z = game.current_pos.z;
+}
 
 function updateHero(){
 
 
 }
 
+
 var fieldDistance, energyBar, replayMessage, fieldLevel, levelCircle;
+var intervalId;
 
 function _test() {
 	var block = game.fn.initBlock();
@@ -245,15 +288,17 @@ function _test() {
 function init(event){
 
   // UI
-
+  resetGame();
   createScene();
   createLights();
   createSky();
-  // createCube();
+  createHero();
   _init_fn(game, scene);
   _test();
+  document.addEventListener('keydown', handleKeyPress);
 
-  loop();
+  //loop();
+  intervalId = setInterval(loop, game.interval);
 }
 
 window.addEventListener('load', init, false);
