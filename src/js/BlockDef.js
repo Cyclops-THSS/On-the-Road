@@ -9,7 +9,16 @@ var _init_fn = function(game, scene, undefined) {
     };
 
     function createBlock(def) {
-        var mesh = new THREE.Mesh(new THREE.CubeGeometry(defaultDef.width, defaultDef.height, defaultDef.depth), new THREE[def.materialType || defaultDef.materialType](def.materialPara || defaultDef.materialPara));
+        var mesh = new THREE.Mesh(new THREE.CubeGeometry(
+                defaultDef.width, 
+                defaultDef.height, 
+                defaultDef.depth
+                ),
+            new THREE[def.materialType || defaultDef.materialType](
+                def.materialPara || defaultDef.materialPara
+                )
+            );
+
         var dTable = ['x', 'z'],
             lTable = {
                 x: 'width',

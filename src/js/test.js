@@ -19,12 +19,15 @@ var game = {
 function resetGame(){
   game = {
     distance_for_hero_speed: 0.1,
-    hero_height: 1,
+    hero_height: 5,
     current_direction: {x: 1, z: 0},
     current_pos: {x: 0, z: 0},
     paused: false,
-    interval: 30
-         };
+    interval: 30,
+
+    camera_position: {x: -20, y: 30, z: -20},
+    camera_distance: {x: -20, y: 25, z: -20}
+  };
 
 }
 
@@ -61,9 +64,15 @@ function createScene() {
     100
     );
 
-  //scene.fog = new THREE.Fog(0xf7d9aa, 100,950);
-   camera.position.set(-20, 20, -20);
-   camera.lookAt(new THREE.Vector3(0, 10, 0));
+  scene.fog = new THREE.Fog(Colors.blue, 100,950);
+   camera.position.x = game.camera_position.x;
+   camera.position.y = game.camera_position.y;
+   camera.position.z = game.camera_position.z;
+
+   camera.lookAt(new THREE.Vector3(
+     game.current_pos.x,
+     game.current_pos.y, 
+     game.current_pos.z));
 
   scene.add(camera);
 
@@ -112,12 +121,12 @@ var ambientLight, hemisphereLight, shadowLight;
 
 function createLights() {
 
-  hemisphereLight = new THREE.HemisphereLight(0xaaaaaa,0x000000, .9)
+  hemisphereLight = new THREE.HemisphereLight(0xffffff,0x000000, .9)
 
   ambientLight = new THREE.AmbientLight(0xdc8874, .5);
 
-  shadowLight = new THREE.DirectionalLight(0xffffff, .9);
-  shadowLight.position.set(150, 350, 350);
+  shadowLight = new THREE.DirectionalLight(0xaaaaaa, .9);
+  shadowLight.position.set(0, 10, 0);
   shadowLight.castShadow = true;
   shadowLight.shadow.camera.left = -400;
   shadowLight.shadow.camera.right = 400;
@@ -233,6 +242,7 @@ function createCoins(){
 
 function loop(){
   updatePosition();
+  updateCamera();
 
 	renderer.render(scene, camera);
 }
@@ -262,6 +272,18 @@ function updatePosition(){
   game.current_pos.z += game.distance_for_hero_speed * game.current_direction.z;
   hero.position.x = game.current_pos.x;
   hero.position.z = game.current_pos.z;
+}
+
+function updateCamera() {
+  camera.position.x = game.current_pos.x + game.camera_distance.x;
+  camera.position.y = game.hero_height + game.camera_distance.y;
+  camera.position.z = game.current_pos.z + game.camera_distance.z;
+
+   camera.lookAt(new THREE.Vector3(
+     game.current_pos.x,
+     game.current_pos.y, 
+     game.current_pos.z));
+
 }
 
 function updateHero(){
