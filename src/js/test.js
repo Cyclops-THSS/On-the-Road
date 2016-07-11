@@ -71,7 +71,7 @@ function createScene() {
 
    camera.lookAt(new THREE.Vector3(
      game.current_pos.x,
-     game.current_pos.y, 
+     game.current_pos.y,
      game.current_pos.z));
 
   scene.add(camera);
@@ -241,9 +241,9 @@ function createCoins(){
 // ANIMATION
 
 function loop(){
-  updatePosition();
-  updateCamera();
-
+  // updatePosition();
+  // updateCamera();
+	TWEEN.update();
 	renderer.render(scene, camera);
 }
 
@@ -264,7 +264,7 @@ function updateToRight() {
    } else {
     game.current_direction.x = game.current_direction.x - game.current_direction.z;
     game.current_direction.z = 0;
-   } 
+   }
 }
 
 function updatePosition(){
@@ -281,13 +281,12 @@ function updateCamera() {
 
    camera.lookAt(new THREE.Vector3(
      game.current_pos.x,
-     game.current_pos.y, 
+     game.current_pos.y,
      game.current_pos.z));
 
 }
 
 function updateHero(){
-
 
 }
 
@@ -297,11 +296,14 @@ var intervalId;
 
 function _test() {
 	var block = game.fn.initBlock();
-	block = block.createBlock({});
-	block = block.createBlock({});
-	block = block.createBlock({direction: 'left'});
-	block = block.createBlock({direction: 'right'});
-	block = block.createBlock({});
+	block = block.create({});
+	block = block.create({});
+	block = block.create({direction: 'left'});
+	block = block.create({direction: 'right'});
+	block = block.create({});
+	setTimeout(function () {
+		block.destroy();
+	}, 5000);
 }
 
 ////////////////////////////////////////////////////////////////////////
