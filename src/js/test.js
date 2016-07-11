@@ -333,15 +333,7 @@ var fieldDistance, energyBar, replayMessage, fieldLevel, levelCircle;
 var intervalId;
 
 function _test() {
-	var block = game.fn.initBlock();
-	block = block.create({});
-	block = block.create({});
-	block = block.create({direction: 'left'});
-	block = block.create({direction: 'right'});
-	block = block.create({});
-	setTimeout(function () {
-		block.destroy();
-	}, 5000);
+	game.fn.load(JSON.parse('[{},{},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{},{"direction":"left"},{},{},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{"direction":"left"},{"direction":"right"},{},{},{},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"left"},{},{}]'));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -352,13 +344,13 @@ function init(event){
   // UI
   resetGame();
   createScene();
-  
+
   createSky();
   createHero();
   createLights();// must after hero
   createPlatform();
   _init_fn(game, scene);
-  //_test();
+  _test();
   document.addEventListener('keydown', handleKeyPress);
 
   loop();
