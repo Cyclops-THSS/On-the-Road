@@ -125,23 +125,28 @@ function createLights() {
 
   ambientLight = new THREE.AmbientLight(0xdc8874, .5);
 
-  shadowLight = new THREE.DirectionalLight(0xaaaaaa, .9);
-  shadowLight.position.set(0, 10, 0);
+  directLight = new THREE.DirectionalLight(0xaaaaaa, .2);
+  directLight.position.set(0, 10, 0);
+
+  shadowLight = new THREE.SpotLight(0xaaaaaa, .6);
+  shadowLight.target = hero;
   shadowLight.castShadow = true;
-  shadowLight.shadow.camera.left = -400;
-  shadowLight.shadow.camera.right = 400;
-  shadowLight.shadow.camera.top = 400;
-  shadowLight.shadow.camera.bottom = -400;
-  shadowLight.shadow.camera.near = 1;
-  shadowLight.shadow.camera.far = 1000;
-  shadowLight.shadow.mapSize.width = 4096;
-  shadowLight.shadow.mapSize.height = 4096;
+  shadowLight.position.set(0, 20, 0);
+  // shadowLight.shadow.camera.left = -400;
+  // shadowLight.shadow.camera.right = 400;
+  // shadowLight.shadow.camera.top = 400;
+  // shadowLight.shadow.camera.bottom = -400;
+  // shadowLight.shadow.camera.near = 1;
+  // shadowLight.shadow.camera.far = 1000;
+  // shadowLight.shadow.mapSize.width = 4096;
+  // shadowLight.shadow.mapSize.height = 4096;
 
   var ch = new THREE.CameraHelper(shadowLight.shadow.camera);
 
   //scene.add(ch);
   scene.add(hemisphereLight);
   scene.add(shadowLight);
+  scene.add(directLight);
   scene.add(ambientLight);
 
 }
@@ -172,10 +177,12 @@ Sky = function(){
 Cloud = function(){
   this.mesh = new THREE.Object3D();
   this.mesh.name = "cloud";
+  this.mesh.castShadow = true;
   var geom = new THREE.CubeGeometry(20, 20, 20);
   var mat = new THREE.MeshPhongMaterial({
     color:Colors.white,
-
+    opacity: .85,
+    transparent: true
   });
 
   //*
@@ -199,12 +206,38 @@ Cloud = function(){
   //*/
 }
 
-Path = function(){
+Platform = function() {
+  var geom = new THREE.CubeGeometry(8, 1, 8, 4, 1, 4);
+  geom.mergeVertices();
+  var mat = new THREE.MeshPhongMaterial({
+    color:Colors.brown,
+    shading:THREE.FlatShading
+  });
 
+  this.mesh = new THREE.Mesh(geom, mat);
+  this.mesh.receiveShadow = true;
 
-}
+  // get the vertices
+  var verts = geom.vertices;
+  var l = verts.length;
+  this.vex = [];
+  for (var i = 0; i < l; i++) {
+    var v = verts[i];
 
-Path.prototype.dissapear = function (){
+    // store some data associated to it
+    vprops = { y:v.y,
+               x:v.x,
+               z:v.z,
+               // a random angle
+               ang:Math.random()*Math.PI*2,
+               // a random distance
+               amp: Math.random()*1
+               // a random speed between 0.016 and 0.048 radians / frame
+               //speed:0.016 + Math.random()*0.032
+              };
+    v.x = vprops.x + Math.cos(vprops.ang)*vprops.amp;
+    v.y = vprops.y + Math.sin(vprops.ang)*vprops.amp;
+  }
 
 }
 
@@ -215,16 +248,21 @@ Path.prototype.dissapear = function (){
 function createHero(){
   hero = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
       new THREE.MeshPhongMaterial({
-          color: Colors.red
+          color: Colors.red,
+          shading:THREE.FlatShading
       })
   );
   hero.position.x = game.current_pos.x;
   hero.position.y = game.hero_height;
   hero.position.z = game.current_pos.z;
+  hero.castShadow = true;
+  hero.receiveShadow = true;
   scene.add(hero);
 }
 
-function createPath(){
+function createPlatform(){
+  start = new Platform();
+  scene.add(start.mesh);
 }
 
 function createSky(){
@@ -241,8 +279,8 @@ function createCoins(){
 // ANIMATION
 
 function loop(){
-  // updatePosition();
-  // updateCamera();
+   updatePosition();
+   updateCamera();
 	TWEEN.update();
 	renderer.render(scene, camera);
 }
@@ -314,14 +352,16 @@ function init(event){
   // UI
   resetGame();
   createScene();
-  createLights();
+  
   createSky();
   createHero();
+  createLights();// must after hero
+  createPlatform();
   _init_fn(game, scene);
-  _test();
+  //_test();
   document.addEventListener('keydown', handleKeyPress);
 
-  //loop();
+  loop();
   intervalId = setInterval(loop, game.interval);
 }
 

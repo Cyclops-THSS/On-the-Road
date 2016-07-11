@@ -89,6 +89,8 @@ var _init_fn = function(game, scene, undefined) {
         mesh.position.x = this.data.position.x;
         mesh.position.y = def.maxy;
         mesh.position.z = this.data.position.z;
+        mesh.receiveShadow = true;
+        mesh.castShadow = true;
         var newAxis, newSign;
         switch (def.direction) {
             case 'forward':
