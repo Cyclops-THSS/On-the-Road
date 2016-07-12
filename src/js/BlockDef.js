@@ -21,7 +21,7 @@ var _init_fn = function(game, scene, undefined) {
             maxy: 8,
             miny: -8,
             hovery: 0,
-            interval: 350,
+            interval: 300,
             platform: undefined
         },
         directionImpl = {
@@ -292,13 +292,17 @@ var _init_fn = function(game, scene, undefined) {
                 }).create(_settings, callback);
             },
             animate: animate,
-            destroy: function() {
-                this.animate(1000, {
-                    opacity: 0,
-                    y: defaultDef.miny
-                }, function() {
+            destroy: function(bool) {
+                if (bool === undefined || bool === false) {
+                    this.animate(1000, {
+                        opacity: 0,
+                        y: defaultDef.miny
+                    }, function() {
+                        scene.remove(this.data);
+                    });
+                } else {
                     scene.remove(this.data);
-                });
+                }
             },
             goodMove: function(dir, pos) {
                 if (pos.x > mesh.position.x + settings.width / 2 + defaultDef.width || pos.x < mesh.position.x + settings.width / 2 - defaultDef.width || pos.z > mesh.position.z + settings.depth / 2 || pos.z < mesh.position.z + settings.depth / 2 - defaultDef.depth) {
@@ -351,6 +355,6 @@ var _init_fn = function(game, scene, undefined) {
         load: loadMap,
         direction: directionImpl,
         default: defaultDef,
-		createPlatform: createPlatform
+        createPlatform: createPlatform
     };
 };

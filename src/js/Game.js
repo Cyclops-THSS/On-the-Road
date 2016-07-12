@@ -8,15 +8,15 @@ var Colors = {
         blue: 0x68c3c0
     },
 
-	statusDef = {
-		running: 0,
-		paused: 1,
-		over: 2,
-		dying: 3,
+    statusDef = {
+        running: 0,
+        paused: 1,
+        over: 2,
+        dying: 3,
         entry: 4
-	},
+    },
     defaultGame = {
-        distance_for_hero_speed: 0.1,
+        distance_for_hero_speed: 0.175,
         hero_height: 10,
         current_direction: {
             x: 1,
@@ -26,7 +26,7 @@ var Colors = {
             x: 0,
             z: 0
         },
-		status: statusDef.entry,
+        status: statusDef.entry,
 
         interval: 30,
         camera_position: {
@@ -39,13 +39,14 @@ var Colors = {
             y: 20,
             z: -20
         },
-        drop : true,
-        drop_delta : 0
+        drop: true,
+        drop_delta: 0,
+        ticks: 0
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
     intervalId, hero, currentBlock,
-    HEIGHT, WIDTH, fn, 
+    HEIGHT, WIDTH, fn,
     Objects = {
         Sky: function() {
             this.mesh = new THREE.Object3D();
@@ -149,7 +150,7 @@ function createScene() {
     camera.position.x = game.camera_position.x;
     camera.position.y = game.camera_position.y;
     camera.position.z = game.camera_position.z;
-    camera.lookAt(new THREE.Vector3(0,1,0));
+    camera.lookAt(new THREE.Vector3(0, 1, 0));
     scene.add(camera);
     renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -181,7 +182,6 @@ function handleKeyPress(event) {
             }
         }
     } else if (game.status == statusDef.entry) {
-       
         initializeGame();
     }
 }
@@ -210,33 +210,29 @@ function createObject(objName) {
 
 function loop() {
     if (game.status == statusDef.entry) {
-        //console.log(hero.mesh.position.y);
-        //console.log(game.drop);
-        //$(#title).fadeIn(750);
-        //$(#tutorial).fadeIn(750);
-        if (game.drop == true) {
-            if (hero.mesh.position.y <= 1) { game.drop = false; game.drop_delta = 0;}
-            else {
-                game.drop_delta ++;
+        if (game.drop === true) {
+            if (hero.mesh.position.y <= 1) {
+                game.drop = false;
+                game.drop_delta = 0;
+            } else {
+                game.drop_delta++;
                 hero.mesh.position.y -= 50 * (2 * game.drop_delta - 1) * 0.0009;
             }
         }
-        if (game.drop == false) {
-            
-            //if (hero.mesh.position.y >= 1.125) {
-            if (.9 - 50 * (2 * game.drop_delta - 1) * 0.0009 <= 0) {
-                game.drop = true; 
+        if (game.drop === false) {
+            if (0.9 - 50 * (2 * game.drop_delta - 1) * 0.0009 <= 0) {
+                game.drop = true;
                 game.drop_delta = 0;
             }
-            game.drop_delta ++;
-            hero.mesh.position.y += .9 - 50 * (2 * game.drop_delta - 1) * 0.0009;
+            game.drop_delta++;
+            hero.mesh.position.y += 0.9 - 50 * (2 * game.drop_delta - 1) * 0.0009;
         }
-        
-    }
-    else if (game.status == statusDef.over) {
-
-    }
-    else {
+    } else {
+        ++game.ticks;
+        if (game.ticks % 1000 === 0 && game.distance_for_hero_speed < 0.5) {
+            game.distance_for_hero_speed += 0.01;
+            game.ticks = 0;
+        }
         updatePosition();
         updateCamera();
     }
@@ -284,34 +280,35 @@ function updateCamera() {
 
 function initializeGame() {
     game.hero_height = 1;
+    currentBlock.destroy(1);
     currentBlock = loadMap();
     camera.lookAt(new THREE.Vector3(
         game.current_pos.x,
         game.hero_height,
         game.current_pos.z));
     var data = {
-        camera_y: game.camera_position.y,
-        hero_y: hero.mesh.position.y
-    },
-    dest = {
-        camera_y: game.camera_distance.y + game.hero_height,
-        hero_y: game.hero_height
+            camera_y: game.camera_position.y,
+            hero_y: hero.mesh.position.y
+        },
+        dest = {
+            camera_y: game.camera_distance.y + game.hero_height,
+            hero_y: game.hero_height
 
-    }
-    tween = new TWEEN.Tween(data).to(dest, 1000),
-    _this = this;
+        },
+        tween = new TWEEN.Tween(data).to(dest, 1000),
+        _this = this;
 
     tween.onUpdate(function() {
         camera.position.y = data.camera_y;
         hero.mesh.position.y = data.hero_y;
-        camera.lookAt(new THREE.Vector3(0,1,0));
+        camera.lookAt(new THREE.Vector3(0, 1, 0));
     });
     tween.onComplete(function() {
-         game.status = statusDef.running;
+        game.status = statusDef.running;
     });
     tween.start();
-    $('#title').fadeOut(500, function(){});
-    $('#tutorial').fadeOut(500, function(){});
+    $('#title').fadeOut(500, function() {});
+    $('#tutorial').fadeOut(500, function() {});
 }
 
 function loadMap() {
@@ -328,7 +325,6 @@ function init(event) {
     hero = createObject('Hero');
     createLights(); // must after hero
     document.addEventListener('keydown', handleKeyPress, false);
-    // currentBlock = loadMap();
     currentBlock = fn.createPlatform();
     intervalId = setInterval(loop, game.interval);
 }
