@@ -41,7 +41,8 @@ var Colors = {
         },
         drop: true,
         drop_delta: 0,
-        ticks: 0
+        ticks: 0,
+		score: 0
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
@@ -267,6 +268,7 @@ function updatePosition() {
         }
         currentBlock.destroy();
         currentBlock = next;
+		++game.score;
     }
 }
 
