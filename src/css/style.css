@@ -62,3 +62,21 @@ body {
 	z-index: 10000;
 	display: none;
 }
+
+#total_score {
+	font-size: 60px;
+	color: #fff;
+	top: 0; left: 0; bottom: 0; right: 0;  
+  	position: absolute;
+  	text-align: center;
+	margin: auto;
+	margin-top: 150px;
+	width: 800px;
+	height: 50px;
+	z-index: 10000;
+	display: none;
+}
+
+span {
+	color: #fff;
+}

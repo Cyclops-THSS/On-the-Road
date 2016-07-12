@@ -52,14 +52,14 @@ var Colors = {
     Objects = {
         Sky: function() {
             this.mesh = new THREE.Object3D();
-            this.nClouds = 10;
+            this.nClouds = 80;
             this.clouds = [];
             for (var i = 0; i < this.nClouds; i++) {
                 var c = new Objects.Cloud();
                 this.clouds.push(c);
                 c.mesh.position.y = 20 + Math.random() * 10;
-                c.mesh.position.x = -10 + Math.random() * 45;
-                c.mesh.position.z = -10 + Math.random() * 45;
+                c.mesh.position.x = -60 + Math.random() * 180;
+                c.mesh.position.z = -50 + Math.random() * 180;
                 var s = 0.05 + Math.random() * 0.05;
                 c.mesh.scale.set(s, s, s);
                 this.mesh.add(c.mesh);
@@ -264,6 +264,8 @@ function updatePosition() {
                 game.status = statusDef.over;
                 $('#title').fadeIn(600);
                 $('#replay').fadeIn(600);
+                $('#total_score')[0].innerHTML = 'Your total score is ' + game.score.toString();
+                $('#total_score').fadeIn(600);
             });
             game.status = statusDef.dying;
 			createjs.Sound.stop();
@@ -317,8 +319,8 @@ function initializeGame() {
         game.status = statusDef.running;
     });
     tween.start();
-    $('#title').fadeOut(500, function() {});
-    $('#tutorial').fadeOut(500, function() {});
+    $('#title').fadeOut(600);
+    $('#tutorial').fadeOut(600);
 }
 
 function loadMap() {
