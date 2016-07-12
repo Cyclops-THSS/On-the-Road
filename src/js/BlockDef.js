@@ -21,7 +21,7 @@ var _init_fn = function(game, scene, undefined) {
             maxy: 8,
             miny: -8,
             hovery: 0,
-            interval: 300,
+            interval: 350,
             platform: undefined
         },
         directionImpl = {

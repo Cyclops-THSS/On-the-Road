@@ -181,8 +181,10 @@ function handleKeyPress(event) {
                 game.status = statusDef.running;
             }
         }
-    } else if (game.status == statusDef.entry) {
+    } else if (game.status === statusDef.entry) {
         initializeGame();
+    } else if (game.status === statusDef.over) {
+    	window.location.reload();
     }
 }
 
@@ -312,7 +314,7 @@ function initializeGame() {
 }
 
 function loadMap() {
-    return fn.load(JSON.parse('[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{"direction":"left"},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{}]'));
+    return fn.load(JSON.parse('[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{},{},{"direction":"left"},{},{"direction":"left"},{"direction":"right"},{},{"direction":"right"},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{},{"direction":"left"},{},{"platform":"special"},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"platform":"special"},{}]'));
 }
 
 var currentBlock;
