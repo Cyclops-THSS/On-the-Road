@@ -205,6 +205,7 @@ var _init_fn = function(game, scene, undefined) {
         };
     }
 
+
     function createPlatform(settings, callback) {
         settings = jQuery.extend(true, {
             x: 0,
