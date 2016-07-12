@@ -7,14 +7,13 @@ var Colors = {
     pink:0xF5986E,
     yellow:0xf4ce93,
     blue:0x68c3c0,
-
-};
+    purple:0x996699
+  }
 
 ////////////////////////////////////////////////////////////////////////
 
 // GAME VARIABLES
-var game = {
-};
+var game = {};
 
 function resetGame(){
   game = {
@@ -26,7 +25,7 @@ function resetGame(){
     interval: 30,
 
     camera_position: {x: -20, y: 30, z: -20},
-    camera_distance: {x: -20, y: 25, z: -20}
+    camera_distance: {x: -20, y: 20, z: -20}
   };
 
 }
@@ -121,11 +120,11 @@ var ambientLight, hemisphereLight, shadowLight;
 
 function createLights() {
 
-  hemisphereLight = new THREE.HemisphereLight(0xffffff,0x000000, .9)
+  hemisphereLight = new THREE.HemisphereLight(0xffffff,0x000000, .8)
 
   ambientLight = new THREE.AmbientLight(0xdc8874, .5);
 
-  directLight = new THREE.DirectionalLight(0xaaaaaa, .2);
+  directLight = new THREE.DirectionalLight(0xaaaaaa, .1);
   directLight.position.set(0, 10, 0);
 
   shadowLight = new THREE.SpotLight(0xaaaaaa, .6);
@@ -217,28 +216,74 @@ Platform = function() {
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = true;
 
+
   // get the vertices
   var verts = geom.vertices;
   var l = verts.length;
+  console.log(l);
   this.vex = [];
-  for (var i = 0; i < l; i++) {
-    var v = verts[i];
 
+   for (var i = 0; i < l; i++) {
+    if (i < 20 || (i >=20 && i <24) || (i >=32 && i < 38) || (i >=47))
+     continue;
+    var v = verts[i];
     // store some data associated to it
     vprops = { y:v.y,
                x:v.x,
                z:v.z,
-               // a random angle
-               ang:Math.random()*Math.PI*2,
                // a random distance
-               amp: Math.random()*1
+               ampx: -.8 + Math.random() * 1.6,
+               ampy: -1 + Math.random() * 1.5,
+               ampz: -.8 + Math.random() *1.6
                // a random speed between 0.016 and 0.048 radians / frame
                //speed:0.016 + Math.random()*0.032
               };
-    v.x = vprops.x + Math.cos(vprops.ang)*vprops.amp;
-    v.y = vprops.y + Math.sin(vprops.ang)*vprops.amp;
+    v.x = vprops.x + vprops.ampx;
+    v.y = vprops.y + vprops.ampy;
+    v.z = vprops.z + vprops.ampz;
   }
 
+}
+
+SpecialPlatform = function() {
+  var geom = new THREE.CubeGeometry(8, 1, 8, 4, 1, 4);
+  geom.mergeVertices();
+  var mat = new THREE.MeshPhongMaterial({
+    color:Colors.brown,
+    shading:THREE.FlatShading
+  });
+
+  this.mesh = new THREE.Mesh(geom, mat);
+  this.mesh.receiveShadow = true;
+
+
+  // get the vertices
+  var verts = geom.vertices;
+  var l = verts.length;
+  console.log(l);
+  this.vex = [];
+
+   for (var i = 0; i < l; i++) {
+    if (i < 20 || (i >=20 && i <24) || (i >=32 && i < 38) || (i >=47))
+     continue;
+    var v = verts[i];
+    // store some data associated to it
+    vprops = { y:v.y,
+               x:v.x,
+               z:v.z,
+               // a random distance
+               ampx: -.8 + Math.random() * 1.6,
+               ampy: -1 + Math.random() * 1.5,
+               ampz: -.8 + Math.random() *1.6
+               // a random speed between 0.016 and 0.048 radians / frame
+               //speed:0.016 + Math.random()*0.032
+              };
+    //v.x = vprops.x + vprops.ampx;
+    v.y = vprops.y + vprops.ampy;
+    //v.z = vprops.z + vprops.ampz;
+  }
+  verts[22].y += 7 + Math.random();
+  verts[29].y += 4 + Math.random();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -261,7 +306,7 @@ function createHero(){
 }
 
 function createPlatform(){
-  start = new Platform();
+  start = new SpecialPlatform();
   scene.add(start.mesh);
 }
 
@@ -333,8 +378,22 @@ var fieldDistance, energyBar, replayMessage, fieldLevel, levelCircle;
 var intervalId;
 
 function _test() {
-	game.fn.load(JSON.parse('[{},{},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{},{"direction":"left"},{},{},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{"direction":"left"},{"direction":"right"},{},{},{},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"left"},{},{}]'));
+	var block = game.fn.initBlock();
+	block = block.create({});
+	block = block.create({});
+	block = block.create({direction: 'left'});
+	block = block.create({direction: 'right'});
+	block = block.create({});
+	setTimeout(function () {
+		block.destroy();
+	}, 5000);
 }
+
+////////////////////////////////////////////////////////////////////////
+
+// Start and end
+
+
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -344,14 +403,24 @@ function init(event){
   // UI
   resetGame();
   createScene();
-
+  
   createSky();
   createHero();
   createLights();// must after hero
   createPlatform();
   _init_fn(game, scene);
-  _test();
+ // _test();
   document.addEventListener('keydown', handleKeyPress);
+ 
+  // var loader = new THREE.JSONLoader();
+  // loader.load(
+  //   '../ext/cube2.json', 
+  //   function (geometry, materials) {
+  //     var material = new THREE.MultiMaterial( materials );
+  //     var object = new THREE.Mesh( geometry, material );
+  //     scene.add( object );
+  //   }
+  // );
 
   loop();
   intervalId = setInterval(loop, game.interval);
