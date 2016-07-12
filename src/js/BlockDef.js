@@ -22,6 +22,10 @@ var _init_fn = function(game, scene, undefined) {
             miny: -8,
             hovery: 0,
             interval: 500
+        },
+        dirDef = {
+            CW: 0,
+            CCW: 1
         };
 
     function createBlock(settings, callback) {
@@ -63,12 +67,15 @@ var _init_fn = function(game, scene, undefined) {
                 newSign = this.axis === 0 ? -1 * this.sign : this.sign;
                 break;
         }
-        mesh.position[dTable[newAxis]] += (newSign) * (defaultDef[lTable[dTable[newAxis]]] + def.gap);
+        mesh.position[dTable[newAxis]] += (newSign) * (def[lTable[dTable[newAxis]]] + def.gap);
         scene.add(mesh);
         return (this[def.direction] = {
-            forward: {},
-            left: {},
-            right: {},
+            width: def.width,
+            height: def.height,
+            depth: def.depth,
+            forward: undefined,
+            left: undefined,
+            right: undefined,
             create: createBlock,
             animate: animate,
             destroy: destroyBlock,
@@ -115,22 +122,104 @@ var _init_fn = function(game, scene, undefined) {
         });
     }
 
-    function init() {
+    function upon(position) {
+        return Math.abs(position.x - this.data.position.x) <= this.width / 2 && Math.abs(position.z - this.data.position.z) <= this.depth / 2;
+    }
+
+    function init(pos) {
+        pos = jQuery.extend(true, {
+            x: 0,
+            y: 0,
+            z: 0
+        }, pos);
         return {
-            forward: {},
-            left: {},
-            right: {},
             create: createBlock,
             data: {
                 position: {
-                    x: -(defaultDef.width / 2),
-                    y: 0,
-                    z: 0
+                    x: pos.x,
+                    y: pos.y,
+                    z: pos.z
                 }
             },
             axis: 0,
             sign: 1
         };
+    }
+
+    function createPlatform(pos, callback) {
+        var geom = new THREE.CubeGeometry(8, 1, 8, 4, 1, 4);
+        geom.mergeVertices();
+        var mat = new THREE.MeshPhongMaterial({
+            color: Colors.brown,
+            shading: THREE.FlatShading,
+            transparent: true,
+            opacity: 0
+        });
+        var mesh = new THREE.Mesh(geom, mat);
+        mesh.receiveShadow = true;
+        pos = jQuery.extend(true, {
+            x: 0,
+            y: defaultDef.miny,
+            z: 0
+        }, pos);
+        mesh.position.x = pos.x;
+        mesh.position.y = pos.y;
+        mesh.position.z = pos.z;
+        var verts = geom.vertices;
+        var l = verts.length;
+        for (var i = 0; i < l; i++) {
+            var v = verts[i];
+            vprops = {
+                y: v.y,
+                x: v.x,
+                z: v.z,
+                ang: Math.random() * Math.PI * 2,
+                amp: Math.random() * 1
+            };
+            v.x = vprops.x + Math.cos(vprops.ang) * vprops.amp;
+            v.y = vprops.y + Math.sin(vprops.ang) * vprops.amp;
+        }
+        scene.add(mesh);
+        return {
+            data: mesh,
+            interval: 1000,
+            miny: defaultDef.miny,
+            hovery: defaultDef.hovery,
+            axis: 0,
+            sign: 1,
+            create: function(settings, callback) {
+                init({
+                    x: mesh.position.x + 4 - (defaultDef.width / 2),
+                    z: mesh.position.z + 4 - (defaultDef.height / 2)
+                }).create(settings, callback);
+            },
+            animate: function(time, callback) {
+                var data = {
+                        y: this.data.position.y,
+                        opacity: this.data.material.opacity
+                    },
+                    dest = {
+                        y: this.hovery,
+                        opacity: 1.0
+                    },
+                    tween = new TWEEN.Tween(data).to(dest, time),
+                    _this = this;
+                tween.onUpdate(function() {
+                    _this.data.position.y = data.y;
+                    _this.data.material.opacity = data.opacity;
+                });
+                tween.onComplete(function() {
+                    if (callback !== undefined) {
+                        callback.call(_this);
+                    }
+                });
+                tween.start();
+                return this;
+            },
+            destroy: function() {
+                scene.remove(this.data);
+            }
+        }.animate(1000, callback);
     }
 
     function loadMap(json) {
@@ -142,10 +231,24 @@ var _init_fn = function(game, scene, undefined) {
                     index = 0;
                 }
             };
-        init().create(json[index], callback);
+        return createPlatform({}, function() {
+            this.create(json[index], callback);
+        });
     }
 
-    return (game.fn = {
-        load: loadMap
-    });
+    function nextDirection() {
+        if (this.left !== undefined) {
+            return dirDef.CCW;
+        }
+        if (this.right !== undefined) {
+            return dirDef.CW;
+        }
+        return this.forward.nextDirection();
+    }
+
+    return {
+        load: loadMap,
+        direction: dirDef,
+        default: defaultDef
+    };
 };
