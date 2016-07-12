@@ -1,4 +1,4 @@
-var map = "fffflrlrlffrffflfrfffflfffffrlrlfflfffflfrffflrflrffffrlffflrffflfrffrlffrlfrfflff";
+var map = "fflrlrlfffrlrlrffsfflffrfflfrf";
 function toJson(map) {
 	var d = [];
 	for (var i = 0; i < map.length; i++) {
@@ -11,6 +11,9 @@ function toJson(map) {
 				break;
 			case 'r':
 				d.push({direction: 'right'});
+				break;
+			case 's':
+				d.push({platform: 'special'});
 				break;
 		}
 	}

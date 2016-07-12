@@ -7,14 +7,14 @@ var Colors = {
         yellow: 0xf4ce93,
         blue: 0x68c3c0
     },
-	statusDef = {
-		running: 0,
-		paused: 1,
-		over: 2,
-		dying: 3
-	},
+    statusDef = {
+        running: 0,
+        paused: 1,
+        over: 2,
+        dying: 3
+    },
     defaultGame = {
-        distance_for_hero_speed: 0.1,
+        distance_for_hero_speed: 0.18,
         hero_height: 1,
         current_direction: {
             x: 1,
@@ -24,7 +24,7 @@ var Colors = {
             x: 0,
             z: 0
         },
-		status: statusDef.running,
+        status: statusDef.running,
         interval: 30,
         camera_position: {
             x: -20,
@@ -91,34 +91,36 @@ var Colors = {
                     shading: THREE.FlatShading
                 })
             );
-			var _this = this;
+            var _this = this;
             this.mesh.position.x = game.current_pos.x;
             this.mesh.position.y = game.hero_height / 2 + fn.default.height / 2;
             this.mesh.position.z = game.current_pos.z;
             this.mesh.castShadow = true;
             this.mesh.receiveShadow = true;
-			this.destroy = function(interval, callback) {
-				_this.mesh.material.transparent = true;
-				var dat = {
-					y: _this.mesh.position.y,
-					opacity: 1
-				}, dest = {
-					y: -10,
-					opacity: 0
-				}, tween = new TWEEN.Tween(dat).to(dest, interval),
-				__this = _this;
-				tween.onUpdate(function() {
-					__this.mesh.position.y = dat.y;
-					__this.mesh.material.opacity = dat.opacity;
-				});
-				tween.onComplete(function() {
-					if (callback !== undefined) {
-						callback.call(__this);
-						scene.remove(__this.mesh);
-					}
-				});
-				tween.start();
-			};
+            this.destroy = function(interval, callback) {
+                _this.mesh.material.transparent = true;
+                var dat = {
+                        y: _this.mesh.position.y,
+                        opacity: 1
+                    },
+                    dest = {
+                        y: -10,
+                        opacity: 0
+                    },
+                    tween = new TWEEN.Tween(dat).to(dest, interval),
+                    __this = _this;
+                tween.onUpdate(function() {
+                    __this.mesh.position.y = dat.y;
+                    __this.mesh.material.opacity = dat.opacity;
+                });
+                tween.onComplete(function() {
+                    if (callback !== undefined) {
+                        callback.call(__this);
+                        scene.remove(__this.mesh);
+                    }
+                });
+                tween.start();
+            };
         }
     };
 
@@ -194,9 +196,9 @@ function createLights() {
 }
 
 function createObject(objName) {
-	var ref = new Objects[objName]();
+    var ref = new Objects[objName]();
     scene.add(ref.mesh);
-	return ref;
+    return ref;
 }
 
 function loop() {
@@ -211,25 +213,25 @@ function updateDirection() {
 }
 
 function updatePosition() {
-	if (game.status !== statusDef.running) {
-		return;
-	}
+    if (game.status !== statusDef.running) {
+        return;
+    }
     game.current_pos.x += game.distance_for_hero_speed * game.current_direction.x;
     game.current_pos.z += game.distance_for_hero_speed * game.current_direction.z;
     hero.mesh.position.x = game.current_pos.x;
     hero.mesh.position.z = game.current_pos.z;
-	if (!currentBlock.upon(hero.mesh.position)) {
-		var next = currentBlock.goodMove(fn.direction.get(game.current_direction), hero.mesh.position);
-		if (next === undefined) {
-			hero.destroy(1000, function() {
-				clearInterval(intervalId);
-	            game.status = statusDef.over;
-			});
-			game.status = statusDef.dying;
-		}
-		currentBlock.destroy();
-		currentBlock = next;
-	}
+    if (!currentBlock.upon(hero.mesh.position)) {
+        var next = currentBlock.goodMove(fn.direction.get(game.current_direction), hero.mesh.position);
+        if (next === undefined) {
+            hero.destroy(1000, function() {
+                clearInterval(intervalId);
+                game.status = statusDef.over;
+            });
+            game.status = statusDef.dying;
+        }
+        currentBlock.destroy();
+        currentBlock = next;
+    }
 }
 
 function updateCamera() {
@@ -243,7 +245,7 @@ function updateCamera() {
 }
 
 function loadMap() {
-    return fn.load(JSON.parse('[{},{},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{},{"direction":"left"},{},{},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{"direction":"left"},{"direction":"right"},{},{},{},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"left"},{},{}]'));
+    return fn.load(JSON.parse('[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{"direction":"left"},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{}]'));
 }
 
 function init(event) {
@@ -254,8 +256,8 @@ function init(event) {
     hero = createObject('Hero');
     createLights(); // must after hero
     document.addEventListener('keydown', handleKeyPress, false);
-    intervalId = setInterval(loop, game.interval);
     currentBlock = loadMap();
+    intervalId = setInterval(loop, game.interval);
 }
 
 window.addEventListener('load', init, false);
