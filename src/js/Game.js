@@ -42,7 +42,8 @@ var Colors = {
         drop: true,
         drop_delta: 0,
         ticks: 0,
-		score: 0
+        score: 0,
+        resources: 0
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
@@ -185,7 +186,7 @@ function handleKeyPress(event) {
     } else if (game.status === statusDef.entry) {
         initializeGame();
     } else if (game.status === statusDef.over) {
-    	window.location.reload();
+        window.location.reload();
     }
 }
 
@@ -265,10 +266,12 @@ function updatePosition() {
                 $('#replay').fadeIn(600);
             });
             game.status = statusDef.dying;
+			createjs.Sound.stop();
+			createjs.Sound.play('drop');
         }
         currentBlock.destroy();
         currentBlock = next;
-		++game.score;
+        ++game.score;
     }
 }
 
@@ -283,6 +286,9 @@ function updateCamera() {
 }
 
 function initializeGame() {
+    createjs.Sound.play('bgm', {
+        loop: -1
+    });
     game.hero_height = 1;
     currentBlock.destroy(1);
     currentBlock = loadMap();
@@ -316,12 +322,21 @@ function initializeGame() {
 }
 
 function loadMap() {
-    return fn.load(JSON.parse('[[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{},{},{"direction":"left"},{},{"direction":"left"},{"direction":"right"},{},{"direction":"right"},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{},{"direction":"left"},{},{"platform":"special"},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"platform":"special"},{}],[{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"left"},{},{},{"platform":"special"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{"direction":"right"},{},{"platform":"special"},{},{}],[{},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{"direction":"left"},{},{"platform":"special"},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{}]]'));
+    return fn.load(game.maps);
 }
 
 var currentBlock;
 
 function init(event) {
+    $.getJSON('./src/assets/map.json', function(data) {
+        game.maps = data;
+        ++resources;
+    });
+    createjs.Sound.registerSound('./src/assets/bgm.mp3', 'bgm');
+    createjs.Sound.registerSound('./src/assets/drop.wav', 'drop');
+    createjs.Sound.on('fileload', function() {
+        ++resources;
+    });
     resetGame();
     createScene();
     fn = _init_fn(game, scene);
