@@ -322,13 +322,16 @@ var _init_fn = function(game, scene, undefined) {
         }, callback);
     }
 
-    function loadMap(json) {
+    function loadMap(jsons) {
+		var json = jsons[Math.floor(Math.random() * jsons.length)];
         var len = json.length,
             index = 0,
             callback = function() {
                 this.create(json[++index], callback);
                 if (index === len - 1) {
                     index = 0;
+					json = jsons[Math.floor(Math.random() * jsons.length)];
+					len = json.length;
                 }
             };
         return createPlatform({
