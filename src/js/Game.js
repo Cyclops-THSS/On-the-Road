@@ -36,7 +36,7 @@ var Colors = {
         },
         camera_distance: {
             x: -20,
-            y: 25,
+            y: 20,
             z: -20
         },
         drop : true,
@@ -149,7 +149,7 @@ function createScene() {
     camera.position.x = game.camera_position.x;
     camera.position.y = game.camera_position.y;
     camera.position.z = game.camera_position.z;
-    camera.lookAt(new THREE.Vector3(0,0,0));
+    camera.lookAt(new THREE.Vector3(0,1,0));
     scene.add(camera);
     renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -181,7 +181,7 @@ function handleKeyPress(event) {
             }
         }
     } else if (game.status == statusDef.entry) {
-        game.status = statusDef.running;
+       
         initializeGame();
     }
 }
@@ -239,7 +239,6 @@ function loop() {
     else {
         updatePosition();
         updateCamera();
-        
     }
     TWEEN.update();
     renderer.render(scene, camera);
@@ -282,15 +281,42 @@ function updateCamera() {
 }
 
 function initializeGame() {
-   camera.lookAt(new THREE.Vector3(
-    game.current_pos.x,
-    game.current_pos.y,
-    game.current_pos.z));
+    game.hero_height = 1;
+    currentBlock = loadMap();
+    camera.lookAt(new THREE.Vector3(
+        game.current_pos.x,
+        game.hero_height,
+        game.current_pos.z));
+    var data = {
+        camera_y: game.camera_position.y,
+        hero_y: hero.mesh.position.y
+    },
+    dest = {
+        camera_y: game.camera_distance.y + game.hero_height,
+        hero_y: game.hero_height
+
+    }
+    tween = new TWEEN.Tween(data).to(dest, 1000),
+    _this = this;
+
+    tween.onUpdate(function() {
+        camera.position.y = data.camera_y;
+        hero.mesh.position.y = data.hero_y;
+        camera.lookAt(new THREE.Vector3(0,1,0));
+    });
+    tween.onComplete(function() {
+         game.status = statusDef.running;
+    });
+    tween.start();
+    $('#title').fadeOut(500, function(){});
+    $('#tutorial').fadeOut(500, function(){});
 }
 
 function loadMap() {
     return fn.load(JSON.parse('[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{"direction":"left"},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{}]'));
 }
+
+var currentBlock;
 
 function init(event) {
     resetGame();
