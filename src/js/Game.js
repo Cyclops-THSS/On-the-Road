@@ -262,6 +262,8 @@ function updatePosition() {
             hero.destroy(1000, function() {
                 clearInterval(intervalId);
                 game.status = statusDef.over;
+                $('#title').fadeIn(600);
+                $('#replay').fadeIn(600);
             });
             game.status = statusDef.dying;
         }
