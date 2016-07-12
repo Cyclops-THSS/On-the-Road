@@ -7,6 +7,12 @@ var Colors = {
         yellow: 0xf4ce93,
         blue: 0x68c3c0
     },
+	statusDef = {
+		running: 0,
+		paused: 1,
+		over: 2,
+		dying: 3
+	},
     defaultGame = {
         distance_for_hero_speed: 0.1,
         hero_height: 1,
@@ -18,7 +24,7 @@ var Colors = {
             x: 0,
             z: 0
         },
-        paused: false,
+		status: statusDef.running,
         interval: 30,
         camera_position: {
             x: -20,
@@ -33,7 +39,7 @@ var Colors = {
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
-    intervalId, hero,
+    intervalId, hero, currentBlock,
     HEIGHT, WIDTH, fn,
     Objects = {
         Sky: function() {
@@ -79,17 +85,40 @@ var Colors = {
             }
         },
         Hero: function() {
-            hero = this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
+            this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
                 new THREE.MeshPhongMaterial({
                     color: Colors.red,
                     shading: THREE.FlatShading
                 })
             );
+			var _this = this;
             this.mesh.position.x = game.current_pos.x;
             this.mesh.position.y = game.hero_height / 2 + fn.default.height / 2;
             this.mesh.position.z = game.current_pos.z;
             this.mesh.castShadow = true;
             this.mesh.receiveShadow = true;
+			this.destroy = function(interval, callback) {
+				_this.mesh.material.transparent = true;
+				var dat = {
+					y: _this.mesh.position.y,
+					opacity: 1
+				}, dest = {
+					y: -10,
+					opacity: 0
+				}, tween = new TWEEN.Tween(dat).to(dest, interval),
+				__this = _this;
+				tween.onUpdate(function() {
+					__this.mesh.position.y = dat.y;
+					__this.mesh.material.opacity = dat.opacity;
+				});
+				tween.onComplete(function() {
+					if (callback !== undefined) {
+						callback.call(__this);
+						scene.remove(__this.mesh);
+					}
+				});
+				tween.start();
+			};
         }
     };
 
@@ -130,20 +159,20 @@ function createScene() {
 }
 
 function handleKeyPress(event) {
-	var table = {
-		SPACE: 32,
-		ESC: 27
-	};
-	if (event.keyCode === table.SPACE) {
-		updateDirection();
-	}
+    var table = {
+        SPACE: 32,
+        ESC: 27
+    };
+    if (event.keyCode === table.SPACE) {
+        updateDirection();
+    }
     if (event.keyCode === table.ESC) {
-        if (!game.paused) {
+        if (game.status !== statusDef.paused) {
             clearInterval(intervalId);
-            game.paused = true;
+            game.status = statusDef.paused;
         } else {
             intervalId = setInterval(loop, game.interval);
-            game.paused = false;
+            game.status = statusDef.running;
         }
     }
 }
@@ -155,7 +184,7 @@ function createLights() {
     directLight = new THREE.DirectionalLight(0xaaaaaa, 0.2);
     directLight.position.set(0, 10, 0);
     shadowLight = new THREE.SpotLight(0xaaaaaa, 0.6);
-    shadowLight.target = hero;
+    shadowLight.target = hero.mesh;
     shadowLight.castShadow = true;
     shadowLight.position.set(0, 20, 0);
     scene.add(hemisphereLight);
@@ -165,7 +194,9 @@ function createLights() {
 }
 
 function createObject(objName) {
-    scene.add(new Objects[objName]().mesh);
+	var ref = new Objects[objName]();
+    scene.add(ref.mesh);
+	return ref;
 }
 
 function loop() {
@@ -176,14 +207,31 @@ function loop() {
 }
 
 function updateDirection() {
-
+    game.current_direction = game.current_direction === fn.direction[currentBlock.direction].current_direction ? fn.direction[currentBlock.nextDirection()].current_direction : fn.direction[currentBlock.direction].current_direction;
 }
 
 function updatePosition() {
+	if (game.status !== statusDef.running) {
+		return;
+	}
     game.current_pos.x += game.distance_for_hero_speed * game.current_direction.x;
     game.current_pos.z += game.distance_for_hero_speed * game.current_direction.z;
-    hero.position.x = game.current_pos.x;
-    hero.position.z = game.current_pos.z;
+    hero.mesh.position.x = game.current_pos.x;
+    hero.mesh.position.z = game.current_pos.z;
+	console.log(currentBlock.upon(hero.mesh.position));
+	if (!currentBlock.upon(hero.mesh.position)) {
+		var next = currentBlock.goodMove(fn.direction.get(game.current_direction), hero.mesh.position);
+		if (next === undefined) {
+			hero.destroy(1000, function() {
+				clearInterval(intervalId);
+	            game.status = statusDef.over;
+			});
+			game.status = statusDef.dying;
+		}
+		console.log(hero.mesh.position.x + ', ' + hero.mesh.position.z + '; ' + currentBlock.data.position.x + ', ' + currentBlock.data.position.z);
+		currentBlock.destroy();
+		currentBlock = next;
+	}
 }
 
 function updateCamera() {
@@ -197,19 +245,19 @@ function updateCamera() {
 }
 
 function loadMap() {
-    fn.load(JSON.parse('[{},{},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{},{"direction":"left"},{},{},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{"direction":"left"},{"direction":"right"},{},{},{},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"left"},{},{}]'));
+    return fn.load(JSON.parse('[{},{},{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{},{"direction":"left"},{},{},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{"direction":"left"},{},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{},{"direction":"left"},{"direction":"right"},{},{"direction":"left"},{"direction":"right"},{},{},{},{},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"left"},{"direction":"right"},{},{},{},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"right"},{"direction":"left"},{},{},{"direction":"right"},{"direction":"left"},{},{"direction":"right"},{},{},{"direction":"left"},{},{}]'));
 }
 
 function init(event) {
     resetGame();
     createScene();
-	fn = _init_fn(game, scene);
+    fn = _init_fn(game, scene);
     createObject('Sky');
-    createObject('Hero');
+    hero = createObject('Hero');
     createLights(); // must after hero
     document.addEventListener('keydown', handleKeyPress, false);
     intervalId = setInterval(loop, game.interval);
-	loadMap();
+    currentBlock = loadMap();
 }
 
 window.addEventListener('load', init, false);

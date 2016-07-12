@@ -23,10 +23,66 @@ var _init_fn = function(game, scene, undefined) {
             hovery: 0,
             interval: 500
         },
-        dirDef = {
-            CW: 0,
-            CCW: 1
-        };
+		directionImpl = {
+			'+x': {
+				axis: 0,
+				sign: 1,
+				current_direction: {
+					x: 1,
+					z: 0
+				},
+				left: '-z',
+				right: '+z',
+				forward: '+x'
+			},
+			'-x': {
+				axis: 0,
+				sign: -1,
+				current_direction: {
+					x: -1,
+					z: 0
+				},
+				left: '+z',
+				right: '-z',
+				forward: '-x'
+			},
+			'+z': {
+				axis: 1,
+				sign: 1,
+				current_direction: {
+					x: 0,
+					z: 1
+				},
+				left: '+x',
+				right: '-x',
+				forward: '+z'
+			},
+			'-z': {
+				axis: 1,
+				sign: -1,
+				current_direction: {
+					x: 0,
+					z: -1
+				},
+				left: '-x',
+				right: '+x',
+				forward: '-z'
+			},
+			get: function(current_direction) {
+				switch (current_direction.x) {
+					case 1:
+						return '+x';
+					case -1:
+						return '-x';
+				}
+				switch (current_direction.z) {
+					case 1:
+						return '+z';
+					case -1:
+						return '-z';
+				}
+			}
+		};
 
     function createBlock(settings, callback) {
         var def = jQuery.extend(true, {}, defaultDef, settings);
@@ -52,22 +108,8 @@ var _init_fn = function(game, scene, undefined) {
         mesh.position.z = this.data.position.z;
         mesh.receiveShadow = true;
         mesh.castShadow = true;
-        var newAxis, newSign;
-        switch (def.direction) {
-            case 'forward':
-                newAxis = this.axis;
-                newSign = this.sign;
-                break;
-            case 'right':
-                newAxis = this.axis === 0 ? 1 : 0;
-                newSign = this.axis === 0 ? this.sign : -1 * this.sign;
-                break;
-            case 'left':
-                newAxis = this.axis === 0 ? 1 : 0;
-                newSign = this.axis === 0 ? -1 * this.sign : this.sign;
-                break;
-        }
-        mesh.position[dTable[newAxis]] += (newSign) * (def[lTable[dTable[newAxis]]] + def.gap);
+		var dir = directionImpl[directionImpl[this.direction][def.direction]];
+        mesh.position[dTable[dir.axis]] += (dir.sign) * (def[lTable[dTable[dir.axis]]] + def.gap);
         scene.add(mesh);
         return (this[def.direction] = {
             width: def.width,
@@ -76,54 +118,55 @@ var _init_fn = function(game, scene, undefined) {
             forward: undefined,
             left: undefined,
             right: undefined,
+			direction: dir.forward,
             create: createBlock,
             animate: animate,
-            destroy: destroyBlock,
+            destroy: function() {
+                this.animate.call(this, this.interval, { opacity: 0, y: this.miny },function() {
+                    scene.remove(this.data);
+                });
+            },
+			goodMove: function(dir) {
+				if (this.forward && directionImpl[this.direction].forward === dir) {
+					return this.forward;
+				}
+				if (this.left && directionImpl[this.direction].left === dir) {
+					return this.left;
+				}
+				if (this.right && directionImpl[this.direction].right === dir) {
+					return this.right;
+				}
+				return undefined;
+			},
+			upon: upon,
+            nextDirection: nextDirection,
             data: mesh,
-            axis: newAxis,
-            sign: newSign,
-            miny: def.miny,
-            maxy: def.maxy,
-            hovery: def.hovery,
             interval: def.interval
-        }).animate(def.interval, callback);
+        }).animate(def.interval, { opacity: 1, y: def.hovery }, callback);
     }
 
-    function animate(time, callback) {
-        var data = {
-                y: this.data.position.y,
-                opacity: this.data.material.opacity
-            },
-            dest = (data.y === this.hovery) ? {
-                y: this.miny,
-                opacity: 0.0
-            } : {
-                y: this.hovery,
-                opacity: 1.0
-            },
-            tween = new TWEEN.Tween(data).to(dest, time),
-            _this = this;
-        tween.onUpdate(function() {
-            _this.data.position.y = data.y;
-            _this.data.material.opacity = data.opacity;
-        });
-        tween.onComplete(function() {
-            if (callback !== undefined) {
-                callback.call(_this);
-            }
-        });
-        tween.start();
-        return this;
-    }
-
-    function destroyBlock() {
-        animate.call(this, this.interval, function() {
-            scene.remove(this.data);
-        });
-    }
+	function animate(time, dest, callback) {
+		var data = {
+				y: this.data.position.y,
+				opacity: this.data.material.opacity
+			},
+			tween = new TWEEN.Tween(data).to(dest, time),
+			_this = this;
+		tween.onUpdate(function() {
+			_this.data.position.y = data.y;
+			_this.data.material.opacity = data.opacity;
+		});
+		tween.onComplete(function() {
+			if (callback !== undefined) {
+				callback.call(_this);
+			}
+		});
+		tween.start();
+		return this;
+	}
 
     function upon(position) {
-        return Math.abs(position.x - this.data.position.x) <= this.width / 2 && Math.abs(position.z - this.data.position.z) <= this.depth / 2;
+        return (Math.abs(position.x - this.data.position.x) <= this.width / 1.9) && (Math.abs(position.z - this.data.position.z) <= this.depth / 1.9);
     }
 
     function init(pos) {
@@ -141,13 +184,12 @@ var _init_fn = function(game, scene, undefined) {
                     z: pos.z
                 }
             },
-            axis: 0,
-            sign: 1
+			direction: '+x'
         };
     }
 
     function createPlatform(pos, callback) {
-        var geom = new THREE.CubeGeometry(8, 1, 8, 4, 1, 4);
+        var geom = new THREE.CubeGeometry(16, 1, 16, 4, 1, 4);
         geom.mergeVertices();
         var mat = new THREE.MeshPhongMaterial({
             color: Colors.brown,
@@ -183,43 +225,31 @@ var _init_fn = function(game, scene, undefined) {
         return {
             data: mesh,
             interval: 1000,
-            miny: defaultDef.miny,
-            hovery: defaultDef.hovery,
-            axis: 0,
-            sign: 1,
+			direction: '+x',
+            forward: undefined,
             create: function(settings, callback) {
-                init({
-                    x: mesh.position.x + 4 - (defaultDef.width / 2),
-                    z: mesh.position.z + 4 - (defaultDef.height / 2)
+                this.forward = init({
+                    x: mesh.position.x + 8 - (defaultDef.width / 2),
+                    z: mesh.position.z + 8 - (defaultDef.height / 2)
                 }).create(settings, callback);
             },
-            animate: function(time, callback) {
-                var data = {
-                        y: this.data.position.y,
-                        opacity: this.data.material.opacity
-                    },
-                    dest = {
-                        y: this.hovery,
-                        opacity: 1.0
-                    },
-                    tween = new TWEEN.Tween(data).to(dest, time),
-                    _this = this;
-                tween.onUpdate(function() {
-                    _this.data.position.y = data.y;
-                    _this.data.material.opacity = data.opacity;
-                });
-                tween.onComplete(function() {
-                    if (callback !== undefined) {
-                        callback.call(_this);
-                    }
-                });
-                tween.start();
-                return this;
-            },
+            animate: animate,
             destroy: function() {
-                scene.remove(this.data);
-            }
-        }.animate(1000, callback);
+				this.animate(1000, { opacity: 0, y: this.miny }, function() {
+					scene.remove(this.data);
+				});
+            },
+			goodMove: function(dir, pos) {
+				if (pos.x > mesh.position.x + 8 + defaultDef.width || pos.x < mesh.position.x + 8 - defaultDef.width || pos.z > mesh.position.z + 8 || pos.z < mesh.position.z + 8 - defaultDef.height) {
+					return undefined;
+				}
+				return this.forward;
+			},
+			upon: upon,
+            nextDirection: nextDirection,
+			width: 16,
+			depth: 16
+        }.animate(1000, { opacity: 1, y: defaultDef.hovery }, callback);
     }
 
     function loadMap(json) {
@@ -238,17 +268,20 @@ var _init_fn = function(game, scene, undefined) {
 
     function nextDirection() {
         if (this.left !== undefined) {
-            return dirDef.CCW;
+            return directionImpl[this.direction].left;
         }
         if (this.right !== undefined) {
-            return dirDef.CW;
+            return directionImpl[this.direction].right;
+        }
+        if (this.forward === undefined) {
+            return directionImpl[this.direction].right;
         }
         return this.forward.nextDirection();
     }
 
     return {
         load: loadMap,
-        direction: dirDef,
-        default: defaultDef
+        direction: directionImpl,
+        default: defaultDef,
     };
 };
