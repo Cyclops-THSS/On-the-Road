@@ -350,5 +350,6 @@ var _init_fn = function(game, scene, undefined) {
         load: loadMap,
         direction: directionImpl,
         default: defaultDef,
+		createPlatform: createPlatform
     };
 };

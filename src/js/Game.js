@@ -202,7 +202,7 @@ function createObject(objName) {
 }
 
 function loop() {
-    updatePosition();
+    // updatePosition();
     updateCamera();
     TWEEN.update();
     renderer.render(scene, camera);
@@ -256,7 +256,8 @@ function init(event) {
     hero = createObject('Hero');
     createLights(); // must after hero
     document.addEventListener('keydown', handleKeyPress, false);
-    currentBlock = loadMap();
+    // currentBlock = loadMap();
+    fn.createPlatform();
     intervalId = setInterval(loop, game.interval);
 }
 
