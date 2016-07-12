@@ -122,7 +122,7 @@ var _init_fn = function(game, scene, undefined) {
             create: createBlock,
             animate: animate,
             destroy: function() {
-                this.animate.call(this, this.interval, { opacity: 0, y: this.miny },function() {
+                this.animate.call(this, this.interval, { opacity: 0, y: def.miny },function() {
                     scene.remove(this.data);
                 });
             },
@@ -235,7 +235,7 @@ var _init_fn = function(game, scene, undefined) {
             },
             animate: animate,
             destroy: function() {
-				this.animate(1000, { opacity: 0, y: this.miny }, function() {
+				this.animate(1000, { opacity: 0, y: defaultDef.miny }, function() {
 					scene.remove(this.data);
 				});
             },

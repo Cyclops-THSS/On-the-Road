@@ -218,7 +218,6 @@ function updatePosition() {
     game.current_pos.z += game.distance_for_hero_speed * game.current_direction.z;
     hero.mesh.position.x = game.current_pos.x;
     hero.mesh.position.z = game.current_pos.z;
-	console.log(currentBlock.upon(hero.mesh.position));
 	if (!currentBlock.upon(hero.mesh.position)) {
 		var next = currentBlock.goodMove(fn.direction.get(game.current_direction), hero.mesh.position);
 		if (next === undefined) {
@@ -228,7 +227,6 @@ function updatePosition() {
 			});
 			game.status = statusDef.dying;
 		}
-		console.log(hero.mesh.position.x + ', ' + hero.mesh.position.z + '; ' + currentBlock.data.position.x + ', ' + currentBlock.data.position.z);
 		currentBlock.destroy();
 		currentBlock = next;
 	}
