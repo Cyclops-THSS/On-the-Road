@@ -268,8 +268,8 @@ function updatePosition() {
                 $('#total_score').fadeIn(600);
             });
             game.status = statusDef.dying;
-			createjs.Sound.stop();
-			createjs.Sound.play('drop');
+            createjs.Sound.stop();
+            createjs.Sound.play('drop');
         }
         currentBlock.destroy();
         currentBlock = next;
@@ -288,37 +288,19 @@ function updateCamera() {
 }
 
 function initializeGame() {
+    game.status = statusDef.running;
     createjs.Sound.play('bgm', {
         loop: -1
     });
     game.hero_height = 1;
     currentBlock.destroy(1);
     currentBlock = loadMap();
+    camera.position.y = game.camera_distance.y + game.hero_height;
+    hero.mesh.position.y = game.hero_height;
     camera.lookAt(new THREE.Vector3(
         game.current_pos.x,
         game.hero_height,
         game.current_pos.z));
-    var data = {
-            camera_y: game.camera_position.y,
-            hero_y: hero.mesh.position.y
-        },
-        dest = {
-            camera_y: game.camera_distance.y + game.hero_height,
-            hero_y: game.hero_height
-
-        },
-        tween = new TWEEN.Tween(data).to(dest, 1000),
-        _this = this;
-
-    tween.onUpdate(function() {
-        camera.position.y = data.camera_y;
-        hero.mesh.position.y = data.hero_y;
-        camera.lookAt(new THREE.Vector3(0, 1, 0));
-    });
-    tween.onComplete(function() {
-        game.status = statusDef.running;
-    });
-    tween.start();
     $('#title').fadeOut(600);
     $('#tutorial').fadeOut(600);
 }
@@ -332,12 +314,12 @@ var currentBlock;
 function init(event) {
     $.getJSON('./src/assets/map.json', function(data) {
         game.maps = data;
-        ++resources;
+        ++game.resources;
     });
     createjs.Sound.registerSound('./src/assets/bgm.mp3', 'bgm');
     createjs.Sound.registerSound('./src/assets/drop.wav', 'drop');
     createjs.Sound.on('fileload', function() {
-        ++resources;
+        ++game.resources;
     });
     resetGame();
     createScene();
