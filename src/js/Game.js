@@ -241,7 +241,6 @@ function loop() {
     }
     TWEEN.update();
     renderer.render(scene, camera);
-	console.log(game.resources);
 }
 
 function updateDirection() {
@@ -289,7 +288,7 @@ function updateCamera() {
 
 function initializeGame() {
     game.status = statusDef.running;
-	game.current_pos.x = -currentBlock.width / 2;
+    game.current_pos.x = -currentBlock.width / 2;
     createjs.Sound.play('bgm', {
         loop: -1
     });
@@ -300,21 +299,21 @@ function initializeGame() {
         game.current_pos.x,
         game.hero_height,
         game.current_pos.z));
-		var data = {
-	            camera_y: game.camera_position.y,
-	            hero_y: hero.mesh.position.y
-	        },
-	        dest = {
-	            camera_y: game.camera_distance.y + game.hero_height,
-	            hero_y: game.hero_height
-	        },
-	        tween = new TWEEN.Tween(data).to(dest, 1000);
-	    tween.onUpdate(function() {
-	        camera.position.y = data.camera_y;
-	        hero.mesh.position.y = data.hero_y;
-	        camera.lookAt(new THREE.Vector3(0, 1, 0));
-	    });
-	    tween.start();
+    var data = {
+            camera_y: game.camera_position.y,
+            hero_y: hero.mesh.position.y
+        },
+        dest = {
+            camera_y: game.camera_distance.y + game.hero_height,
+            hero_y: game.hero_height
+        },
+        tween = new TWEEN.Tween(data).to(dest, 1000);
+    tween.onUpdate(function() {
+        camera.position.y = data.camera_y;
+        hero.mesh.position.y = data.hero_y;
+        camera.lookAt(new THREE.Vector3(0, 1, 0));
+    });
+    tween.start();
     $('#title').fadeOut(600);
     $('#tutorial').fadeOut(600);
 }

@@ -163,12 +163,12 @@ var _init_fn = function(game, scene, undefined) {
     }
 
     function animate(time, dest, callback) {
-		if (time === 0) {
-			this.data.position.y = dest.y;
-			this.data.material.opacity = dest.opacity;
-			callback.call(this);
-			return this;
-		}
+        if (time === 0) {
+            this.data.position.y = dest.y;
+            this.data.material.opacity = dest.opacity;
+            callback.call(this);
+            return this;
+        }
         var data = {
                 y: this.data.position.y,
                 opacity: this.data.material.opacity

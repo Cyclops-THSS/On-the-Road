@@ -1,8 +1,8 @@
 var map = ["fflrlrlfffrlrlrffsfffflflrfrfrlfffrfflfrflfsffrlrlrlrffflfsf",
     "ffrlrlrfffrfflflffsffrlfflrfsff",
     "fffrffflrfflfsffrlrlfflrlrffsff",
-	"ffrfffrfffrfffrlrlrffsffflrlrlrff",
-	"ffrlrlrlrlfflrlrlrlrffrfffflffffsff"
+    "ffrfffrfffrfffrlrlrffsffflrlrlrff",
+    "ffrlrlrlrlfflrlrlrlrffrfffflffffsff"
 ];
 var dd = [];
 
