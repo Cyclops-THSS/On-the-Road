@@ -46,7 +46,7 @@ var Colors = {
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
-    intervalId, hero, currentBlock,
+    intervalId, hero, currentBlock, bgminstance,
     HEIGHT, WIDTH, fn,
     Objects = {
         Sky: function() {
@@ -169,19 +169,19 @@ function handleKeyPress(event) {
         SPACE: 32,
         ESC: 27
     };
-    if (game.status == statusDef.running) {
-        if (event.keyCode === table.SPACE) {
-            updateDirection();
+    if (event.keyCode === table.ESC) {
+        if (game.status !== statusDef.paused) {
+            clearInterval(intervalId);
+            game.status = statusDef.paused;
+            bgminstance.setPaused(true);
+        } else {
+            intervalId = setInterval(loop, game.interval);
+            game.status = statusDef.running;
+            bgminstance.setPaused(false);
         }
-        if (event.keyCode === table.ESC) {
-            if (game.status !== statusDef.paused) {
-                clearInterval(intervalId);
-                game.status = statusDef.paused;
-            } else {
-                intervalId = setInterval(loop, game.interval);
-                game.status = statusDef.running;
-            }
-        }
+    }
+    if (game.status == statusDef.running && event.keyCode === table.SPACE) {
+        updateDirection();
     } else if (game.status === statusDef.entry && game.resources === 3) {
         initializeGame();
     } else if (game.status === statusDef.over) {
@@ -288,8 +288,8 @@ function updateCamera() {
 
 function initializeGame() {
     game.status = statusDef.running;
-	game.current_pos.x = -currentBlock.width / 2;
-    createjs.Sound.play('bgm', {
+    game.current_pos.x = -currentBlock.width / 2;
+    bgminstance = createjs.Sound.play('bgm', {
         loop: -1
     });
     game.hero_height = 1;
@@ -299,21 +299,21 @@ function initializeGame() {
         game.current_pos.x,
         game.hero_height,
         game.current_pos.z));
-		var data = {
-	            camera_y: game.camera_position.y,
-	            hero_y: hero.mesh.position.y
-	        },
-	        dest = {
-	            camera_y: game.camera_distance.y + game.hero_height,
-	            hero_y: game.hero_height
-	        },
-	        tween = new TWEEN.Tween(data).to(dest, 1000);
-	    tween.onUpdate(function() {
-	        camera.position.y = data.camera_y;
-	        hero.mesh.position.y = data.hero_y;
-	        camera.lookAt(new THREE.Vector3(0, 1, 0));
-	    });
-	    tween.start();
+    var data = {
+            camera_y: game.camera_position.y,
+            hero_y: hero.mesh.position.y
+        },
+        dest = {
+            camera_y: game.camera_distance.y + game.hero_height,
+            hero_y: game.hero_height
+        },
+        tween = new TWEEN.Tween(data).to(dest, 1000);
+    tween.onUpdate(function() {
+        camera.position.y = data.camera_y;
+        hero.mesh.position.y = data.hero_y;
+        camera.lookAt(new THREE.Vector3(0, 1, 0));
+    });
+    tween.start();
     $('#title').fadeOut(600);
     $('#tutorial').fadeOut(600);
 }
@@ -323,12 +323,12 @@ function loadMap() {
 }
 
 function init(event) {
-    $.getJSON('./assets/map.json', function(data) {
+    $.getJSON('./src/assets/map.json', function(data) {
         game.maps = data;
         ++game.resources;
     });
-    createjs.Sound.registerSound('./assets/bgm.mp3', 'bgm');
-    createjs.Sound.registerSound('./assets/drop.wav', 'drop');
+    createjs.Sound.registerSound('./src/assets/bgm.mp3', 'bgm');
+    createjs.Sound.registerSound('./src/assets/drop.wav', 'drop');
     createjs.Sound.on('fileload', function() {
         ++game.resources;
     });
