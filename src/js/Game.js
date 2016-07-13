@@ -16,7 +16,7 @@ var Colors = {
         entry: 4
     },
     defaultGame = {
-        distance_for_hero_speed: 0.175,
+        distance_for_hero_speed: 0.18,
         hero_height: 10,
         current_direction: {
             x: 1,
@@ -233,7 +233,7 @@ function loop() {
         }
     } else {
         ++game.ticks;
-        if (game.ticks % 1000 === 0 && game.distance_for_hero_speed < 0.5) {
+        if (game.ticks % 500 === 0 && game.distance_for_hero_speed < 0.5) {
             game.distance_for_hero_speed += 0.01;
             game.ticks = 0;
         }
