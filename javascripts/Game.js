@@ -323,12 +323,12 @@ function loadMap() {
 }
 
 function init(event) {
-    $.getJSON('./src/assets/map.json', function(data) {
+    $.getJSON('./assets/map.json', function(data) {
         game.maps = data;
         ++game.resources;
     });
-    createjs.Sound.registerSound('./src/assets/bgm.mp3', 'bgm');
-    createjs.Sound.registerSound('./src/assets/drop.wav', 'drop');
+    createjs.Sound.registerSound('./assets/bgm.mp3', 'bgm');
+    createjs.Sound.registerSound('./assets/drop.wav', 'drop');
     createjs.Sound.on('fileload', function() {
         ++game.resources;
     });
