@@ -241,7 +241,6 @@ function loop() {
     }
     TWEEN.update();
     renderer.render(scene, camera);
-	console.log(game.resources);
 }
 
 function updateDirection() {
