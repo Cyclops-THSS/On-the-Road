@@ -182,7 +182,7 @@ function handleKeyPress(event) {
                 game.status = statusDef.running;
             }
         }
-    } else if (game.status === statusDef.entry) {
+    } else if (game.status === statusDef.entry && game.resources === 3) {
         initializeGame();
     } else if (game.status === statusDef.over) {
         window.location.reload();
@@ -241,6 +241,7 @@ function loop() {
     }
     TWEEN.update();
     renderer.render(scene, camera);
+	console.log(game.resources);
 }
 
 function updateDirection() {
