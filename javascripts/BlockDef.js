@@ -163,6 +163,12 @@ var _init_fn = function(game, scene, undefined) {
     }
 
     function animate(time, dest, callback) {
+		if (time === 0) {
+			this.data.position.y = dest.y;
+			this.data.material.opacity = dest.opacity;
+			callback.call(this);
+			return this;
+		}
         var data = {
                 y: this.data.position.y,
                 opacity: this.data.material.opacity
@@ -282,7 +288,7 @@ var _init_fn = function(game, scene, undefined) {
         scene.add(mesh);
         return {
             data: mesh,
-            interval: 1000,
+            interval: settings.interval,
             direction: settings.direction,
             forward: undefined,
             create: function(_settings, callback) {
@@ -323,15 +329,15 @@ var _init_fn = function(game, scene, undefined) {
     }
 
     function loadMap(jsons) {
-		var json = jsons[Math.floor(Math.random() * jsons.length)];
+        var json = jsons[Math.floor(Math.random() * jsons.length)];
         var len = json.length,
             index = 0,
             callback = function() {
                 this.create(json[++index], callback);
                 if (index === len - 1) {
                     index = 0;
-					json = jsons[Math.floor(Math.random() * jsons.length)];
-					len = json.length;
+                    json = jsons[Math.floor(Math.random() * jsons.length)];
+                    len = json.length;
                 }
             };
         return createPlatform({
