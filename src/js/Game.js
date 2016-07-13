@@ -46,7 +46,7 @@ var Colors = {
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
-    intervalId, hero, currentBlock,
+    intervalId, hero, currentBlock, bgminstance,
     HEIGHT, WIDTH, fn,
     Objects = {
         Sky: function() {
@@ -169,19 +169,19 @@ function handleKeyPress(event) {
         SPACE: 32,
         ESC: 27
     };
-    if (game.status == statusDef.running) {
-        if (event.keyCode === table.SPACE) {
-            updateDirection();
+    if (event.keyCode === table.ESC) {
+        if (game.status !== statusDef.paused) {
+            clearInterval(intervalId);
+            game.status = statusDef.paused;
+            bgminstance.setPaused(true);
+        } else {
+            intervalId = setInterval(loop, game.interval);
+            game.status = statusDef.running;
+            bgminstance.setPaused(false);
         }
-        if (event.keyCode === table.ESC) {
-            if (game.status !== statusDef.paused) {
-                clearInterval(intervalId);
-                game.status = statusDef.paused;
-            } else {
-                intervalId = setInterval(loop, game.interval);
-                game.status = statusDef.running;
-            }
-        }
+    }
+    if (game.status == statusDef.running && event.keyCode === table.SPACE) {
+        updateDirection();
     } else if (game.status === statusDef.entry && game.resources === 3) {
         initializeGame();
     } else if (game.status === statusDef.over) {
@@ -289,7 +289,7 @@ function updateCamera() {
 function initializeGame() {
     game.status = statusDef.running;
     game.current_pos.x = -currentBlock.width / 2;
-    createjs.Sound.play('bgm', {
+    bgminstance = createjs.Sound.play('bgm', {
         loop: -1
     });
     game.hero_height = 1;
