@@ -205,6 +205,7 @@ var _init_fn = function(game, scene, undefined) {
         };
     }
 
+
     function createPlatform(settings, callback) {
         settings = jQuery.extend(true, {
             x: 0,
@@ -291,13 +292,17 @@ var _init_fn = function(game, scene, undefined) {
                 }).create(_settings, callback);
             },
             animate: animate,
-            destroy: function() {
-                this.animate(1000, {
-                    opacity: 0,
-                    y: defaultDef.miny
-                }, function() {
+            destroy: function(bool) {
+                if (bool === undefined || bool === false) {
+                    this.animate(1000, {
+                        opacity: 0,
+                        y: defaultDef.miny
+                    }, function() {
+                        scene.remove(this.data);
+                    });
+                } else {
                     scene.remove(this.data);
-                });
+                }
             },
             goodMove: function(dir, pos) {
                 if (pos.x > mesh.position.x + settings.width / 2 + defaultDef.width || pos.x < mesh.position.x + settings.width / 2 - defaultDef.width || pos.z > mesh.position.z + settings.depth / 2 || pos.z < mesh.position.z + settings.depth / 2 - defaultDef.depth) {
@@ -317,13 +322,16 @@ var _init_fn = function(game, scene, undefined) {
         }, callback);
     }
 
-    function loadMap(json) {
+    function loadMap(jsons) {
+		var json = jsons[Math.floor(Math.random() * jsons.length)];
         var len = json.length,
             index = 0,
             callback = function() {
                 this.create(json[++index], callback);
                 if (index === len - 1) {
                     index = 0;
+					json = jsons[Math.floor(Math.random() * jsons.length)];
+					len = json.length;
                 }
             };
         return createPlatform({
@@ -350,6 +358,6 @@ var _init_fn = function(game, scene, undefined) {
         load: loadMap,
         direction: directionImpl,
         default: defaultDef,
-		createPlatform: createPlatform
+        createPlatform: createPlatform
     };
 };

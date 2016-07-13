@@ -7,15 +7,17 @@ var Colors = {
         yellow: 0xf4ce93,
         blue: 0x68c3c0
     },
+
     statusDef = {
         running: 0,
         paused: 1,
         over: 2,
-        dying: 3
+        dying: 3,
+        entry: 4
     },
     defaultGame = {
-        distance_for_hero_speed: 0.18,
-        hero_height: 1,
+        distance_for_hero_speed: 0.175,
+        hero_height: 10,
         current_direction: {
             x: 1,
             z: 0
@@ -24,18 +26,24 @@ var Colors = {
             x: 0,
             z: 0
         },
-        status: statusDef.running,
+        status: statusDef.entry,
+
         interval: 30,
         camera_position: {
             x: -20,
-            y: 30,
+            y: 10,
             z: -20
         },
         camera_distance: {
             x: -20,
-            y: 25,
+            y: 20,
             z: -20
-        }
+        },
+        drop: true,
+        drop_delta: 0,
+        ticks: 0,
+        score: 0,
+        resources: 0
     },
     game, scene, camera, fieldOfView, aspectRatio,
     renderer, container,
@@ -44,14 +52,14 @@ var Colors = {
     Objects = {
         Sky: function() {
             this.mesh = new THREE.Object3D();
-            this.nClouds = 10;
+            this.nClouds = 80;
             this.clouds = [];
             for (var i = 0; i < this.nClouds; i++) {
                 var c = new Objects.Cloud();
                 this.clouds.push(c);
                 c.mesh.position.y = 20 + Math.random() * 10;
-                c.mesh.position.x = -10 + Math.random() * 45;
-                c.mesh.position.z = -10 + Math.random() * 45;
+                c.mesh.position.x = -60 + Math.random() * 180;
+                c.mesh.position.z = -50 + Math.random() * 180;
                 var s = 0.05 + Math.random() * 0.05;
                 c.mesh.scale.set(s, s, s);
                 this.mesh.add(c.mesh);
@@ -144,10 +152,7 @@ function createScene() {
     camera.position.x = game.camera_position.x;
     camera.position.y = game.camera_position.y;
     camera.position.z = game.camera_position.z;
-    camera.lookAt(new THREE.Vector3(
-        game.current_pos.x,
-        game.current_pos.y,
-        game.current_pos.z));
+    camera.lookAt(new THREE.Vector3(0, 1, 0));
     scene.add(camera);
     renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -165,17 +170,23 @@ function handleKeyPress(event) {
         SPACE: 32,
         ESC: 27
     };
-    if (event.keyCode === table.SPACE) {
-        updateDirection();
-    }
-    if (event.keyCode === table.ESC) {
-        if (game.status !== statusDef.paused) {
-            clearInterval(intervalId);
-            game.status = statusDef.paused;
-        } else {
-            intervalId = setInterval(loop, game.interval);
-            game.status = statusDef.running;
+    if (game.status == statusDef.running) {
+        if (event.keyCode === table.SPACE) {
+            updateDirection();
         }
+        if (event.keyCode === table.ESC) {
+            if (game.status !== statusDef.paused) {
+                clearInterval(intervalId);
+                game.status = statusDef.paused;
+            } else {
+                intervalId = setInterval(loop, game.interval);
+                game.status = statusDef.running;
+            }
+        }
+    } else if (game.status === statusDef.entry) {
+        initializeGame();
+    } else if (game.status === statusDef.over) {
+        window.location.reload();
     }
 }
 
@@ -202,8 +213,33 @@ function createObject(objName) {
 }
 
 function loop() {
-    updatePosition();
-    updateCamera();
+    if (game.status == statusDef.entry) {
+        if (game.drop === true) {
+            if (hero.mesh.position.y <= 1) {
+                game.drop = false;
+                game.drop_delta = 0;
+            } else {
+                game.drop_delta++;
+                hero.mesh.position.y -= 50 * (2 * game.drop_delta - 1) * 0.0009;
+            }
+        }
+        if (game.drop === false) {
+            if (0.9 - 50 * (2 * game.drop_delta - 1) * 0.0009 <= 0) {
+                game.drop = true;
+                game.drop_delta = 0;
+            }
+            game.drop_delta++;
+            hero.mesh.position.y += 0.9 - 50 * (2 * game.drop_delta - 1) * 0.0009;
+        }
+    } else {
+        ++game.ticks;
+        if (game.ticks % 1000 === 0 && game.distance_for_hero_speed < 0.5) {
+            game.distance_for_hero_speed += 0.01;
+            game.ticks = 0;
+        }
+        updatePosition();
+        updateCamera();
+    }
     TWEEN.update();
     renderer.render(scene, camera);
 }
@@ -226,11 +262,18 @@ function updatePosition() {
             hero.destroy(1000, function() {
                 clearInterval(intervalId);
                 game.status = statusDef.over;
+                $('#title').fadeIn(600);
+                $('#replay').fadeIn(600);
+                $('#total_score')[0].innerHTML = 'Your total score is ' + game.score.toString();
+                $('#total_score').fadeIn(600);
             });
             game.status = statusDef.dying;
+			createjs.Sound.stop();
+			createjs.Sound.play('drop');
         }
         currentBlock.destroy();
         currentBlock = next;
+        ++game.score;
     }
 }
 
@@ -244,11 +287,56 @@ function updateCamera() {
         game.current_pos.z));
 }
 
-function loadMap() {
-    return fn.load(JSON.parse('[{},{},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{},{},{},{"direction":"right"},{"direction":"left"},{"direction":"right"},{"direction":"left"},{"direction":"right"},{},{},{"platform":"special"},{},{},{"direction":"left"},{},{},{"direction":"right"},{},{},{"direction":"left"},{},{"direction":"right"},{}]'));
+function initializeGame() {
+	game.status = statusDef.running;
+    createjs.Sound.play('bgm', {
+        loop: -1
+    });
+    game.hero_height = 1;
+    currentBlock.destroy(1);
+    currentBlock = loadMap();
+    camera.lookAt(new THREE.Vector3(
+        game.current_pos.x,
+        game.hero_height,
+        game.current_pos.z));
+    var data = {
+            camera_y: game.camera_position.y,
+            hero_y: hero.mesh.position.y
+        },
+        dest = {
+            camera_y: game.camera_distance.y + game.hero_height,
+            hero_y: game.hero_height
+
+        },
+        tween = new TWEEN.Tween(data).to(dest, 1000),
+        _this = this;
+
+    tween.onUpdate(function() {
+        camera.position.y = data.camera_y;
+        hero.mesh.position.y = data.hero_y;
+        camera.lookAt(new THREE.Vector3(0, 1, 0));
+    });
+    tween.start();
+    $('#title').fadeOut(600);
+    $('#tutorial').fadeOut(600);
 }
 
+function loadMap() {
+    return fn.load(game.maps);
+}
+
+var currentBlock;
+
 function init(event) {
+    $.getJSON('./assets/map.json', function(data) {
+        game.maps = data;
+        ++game.resources;
+    });
+    createjs.Sound.registerSound('./assets/bgm.mp3', 'bgm');
+    createjs.Sound.registerSound('./assets/drop.wav', 'drop');
+    createjs.Sound.on('fileload', function() {
+        ++game.resources;
+    });
     resetGame();
     createScene();
     fn = _init_fn(game, scene);
@@ -256,7 +344,7 @@ function init(event) {
     hero = createObject('Hero');
     createLights(); // must after hero
     document.addEventListener('keydown', handleKeyPress, false);
-    currentBlock = loadMap();
+    currentBlock = fn.createPlatform();
     intervalId = setInterval(loop, game.interval);
 }
 
