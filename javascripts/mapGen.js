@@ -1,6 +1,8 @@
 var map = ["fflrlrlfffrlrlrffsfffflflrfrfrlfffrfflfrflfsffrlrlrlrffflfsf",
     "ffrlrlrfffrfflflffsffrlfflrfsff",
-    "fffrffflrfflfsffrlrlfflrlrffsff"
+    "fffrffflrfflfsffrlrlfflrlrffsff",
+	"ffrfffrfffrfffrlrlrffsffflrlrlrff",
+	"ffrlrlrlrlfflrlrlrlrffrfffflffffsff"
 ];
 var dd = [];
 
@@ -33,4 +35,4 @@ function toJson(map) {
 for (var i = 0; i < map.length; i++) {
     toJson(map[i]);
 }
-require('fs').writeFile('./src/js/map.json', JSON.stringify(dd), 'utf8');
+require('fs').writeFile('./src/assets/map.json', JSON.stringify(dd), 'utf8');

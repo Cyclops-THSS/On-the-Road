@@ -16,7 +16,7 @@ var Colors = {
         entry: 4
     },
     defaultGame = {
-        distance_for_hero_speed: 0.18,
+        distance_for_hero_speed: 0.2,
         hero_height: 10,
         current_direction: {
             x: 1,
@@ -27,7 +27,6 @@ var Colors = {
             z: 0
         },
         status: statusDef.entry,
-
         interval: 30,
         camera_position: {
             x: -20,
@@ -183,7 +182,7 @@ function handleKeyPress(event) {
                 game.status = statusDef.running;
             }
         }
-    } else if (game.status === statusDef.entry) {
+    } else if (game.status === statusDef.entry && game.resources === 3) {
         initializeGame();
     } else if (game.status === statusDef.over) {
         window.location.reload();
@@ -233,7 +232,7 @@ function loop() {
         }
     } else {
         ++game.ticks;
-        if (game.ticks % 500 === 0 && game.distance_for_hero_speed < 0.5) {
+        if (game.ticks % 500 === 0 && game.distance_for_hero_speed < 0.35) {
             game.distance_for_hero_speed += 0.01;
             game.ticks = 0;
         }
@@ -242,6 +241,7 @@ function loop() {
     }
     TWEEN.update();
     renderer.render(scene, camera);
+	console.log(game.resources);
 }
 
 function updateDirection() {
@@ -289,18 +289,32 @@ function updateCamera() {
 
 function initializeGame() {
     game.status = statusDef.running;
+	game.current_pos.x = -currentBlock.width / 2;
     createjs.Sound.play('bgm', {
         loop: -1
     });
     game.hero_height = 1;
     currentBlock.destroy(1);
     currentBlock = loadMap();
-    camera.position.y = game.camera_distance.y + game.hero_height;
-    hero.mesh.position.y = game.hero_height;
     camera.lookAt(new THREE.Vector3(
         game.current_pos.x,
         game.hero_height,
         game.current_pos.z));
+		var data = {
+	            camera_y: game.camera_position.y,
+	            hero_y: hero.mesh.position.y
+	        },
+	        dest = {
+	            camera_y: game.camera_distance.y + game.hero_height,
+	            hero_y: game.hero_height
+	        },
+	        tween = new TWEEN.Tween(data).to(dest, 1000);
+	    tween.onUpdate(function() {
+	        camera.position.y = data.camera_y;
+	        hero.mesh.position.y = data.hero_y;
+	        camera.lookAt(new THREE.Vector3(0, 1, 0));
+	    });
+	    tween.start();
     $('#title').fadeOut(600);
     $('#tutorial').fadeOut(600);
 }
@@ -309,15 +323,13 @@ function loadMap() {
     return fn.load(game.maps);
 }
 
-var currentBlock;
-
 function init(event) {
-    $.getJSON('./src/assets/map.json', function(data) {
+    $.getJSON('./assets/map.json', function(data) {
         game.maps = data;
         ++game.resources;
     });
-    createjs.Sound.registerSound('./src/assets/bgm.mp3', 'bgm');
-    createjs.Sound.registerSound('./src/assets/drop.wav', 'drop');
+    createjs.Sound.registerSound('./assets/bgm.mp3', 'bgm');
+    createjs.Sound.registerSound('./assets/drop.wav', 'drop');
     createjs.Sound.on('fileload', function() {
         ++game.resources;
     });
