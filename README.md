@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
-
 # On the Road
 
 -> [Demo](https://cyclops-thss.github.io/On-the-Road/) <-
@@ -16,7 +14,7 @@ On the Road是一款低多边形风格的类跑酷游戏，设定为Hero（游�
 
 Safari|Chorme|Firefox|Opera|IE
 :-:|:-:|:-:|:-:|:-:
-<i class="fa fa-safari fa-3"></i>|<i class="fa fa-chrome fa-3"></i>|<i class="fa fa-firefox fa-3"></i>|<i class="fa fa-opera fa-3"></i>|X
+√|√|√|√|X
 
 ## 操作方法
 
